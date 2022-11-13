@@ -15,6 +15,14 @@ def defer_acceptance():
 
 # Reduction
 def reduction():
-    # Run DA on firm side
-    # Run DA on worker side
+    # uF = Run DA on firm side
+
+    # uW = Run DA on worker side
+
+    # Reduction Step 1 on both sides
+
+    # Reduction Step 2 on both sides
+
+    # Reduction Step 3 to eliminate individual blocking pair
+    
     pass
