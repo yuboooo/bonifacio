@@ -1,5 +1,5 @@
 # imports
-
+from da import defer_acceptance
 
 # Check substitutable
 def check_substitable():
@@ -10,8 +10,8 @@ def check_lad():
     pass
 
 # Many-many DA
-def defer_acceptance():
-    pass
+def da(males_prefs, females_prefs):
+    return defer_acceptance(males_prefs, females_prefs)
 
 # Reduction
 def reduction():
