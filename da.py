@@ -122,5 +122,5 @@ def defer_acceptance(males_prefs, females_prefs):
         propose()
         male_matches = dict(sorted(male_matches.items()))
         female_matches = dict(sorted(female_matches.items()))
-
+    print([male_matches, female_matches])
     return [male_matches, female_matches]
