@@ -26,3 +26,6 @@ def reduction():
     # Reduction Step 3 to eliminate individual blocking pair
     
     pass
+
+def cycle():
+    pass

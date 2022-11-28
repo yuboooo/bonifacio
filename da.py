@@ -1,5 +1,14 @@
 from itertools import permutations
 
+def remove_unmatched(match):
+    new_match = {}
+    for keys, values in match.items():
+        if values != "No match":
+            new_match[keys] = values
+        else:
+            continue
+    return new_match
+
 # find the free male
 def male_without_match(male_matches, males):
     for male in males:
@@ -80,7 +89,7 @@ def defer_acceptance(males_prefs, females_prefs):
             highest_rank_female = female_not_proposed(male, male_proposed, male_pref) # current highest ranked female that male not proposed yet
 
             if highest_rank_female == "None":
-                male_matches[male] = "None"
+                male_matches[male] = "No match"
                 return
 
             if male_proposed[male] == []: # if not in proposed list, add into it
@@ -120,6 +129,30 @@ def defer_acceptance(males_prefs, females_prefs):
                         propose()
 
         propose()
-        male_matches = dict(sorted(male_matches.items()))
-        female_matches = dict(sorted(female_matches.items()))
+    male_matches = dict(sorted(male_matches.items()))
+    female_matches = dict(sorted(female_matches.items()))
+    male_matches = remove_unmatched(male_matches)
+    female_matches = remove_unmatched(female_matches)
     return [male_matches, female_matches]
+
+def main():
+    firms_pref = {
+                        1: [[1,2],[1,5],[2,5],[1,3],[4,5],[2,4],[1,4],[3,4],[3,5],[2,3],[1],[4],[3],[2],[5]],
+                        2: [[3,6],[3,5],[5,6],[2,5],[1,3],[2,6],[1,5],[1,2],[2,3],[1,6],[1],[2],[3],[5],[6]],
+                        3: [[2,4],[1,2],[3,4],[2,3],[1,3],[1,4],[1],[2],[3],[4]]
+              }
+
+    workers_pref = {
+                            1: [[3],[1],[2]],
+                            2: [[2,3],[1,3],[1,2],[1],[2],[3]],
+                            3: [[1],[2]],
+                            4: [[1],[3],[2]],
+                            5: [[2],[3]],
+                            6: [[1,3],[3],[1]]
+                    }
+    # 1. firms proposing:
+    m, f = defer_acceptance(males_prefs=firms_pref, females_prefs=workers_pref)
+    print(m,f)
+
+if __name__ == "__main__":
+    main()
