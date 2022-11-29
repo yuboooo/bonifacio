@@ -1,6 +1,6 @@
 import bonifacio as b
 
-def test_da():
+def test_defer_acceptance():
     # E.g.1 - Paper's Eg
     firms_pref = {
                             1: [[1,2],[1,5],[2,5],[1,3],[4,5],[2,4],[1,4],[3,4],[3,5],[2,3],[1],[4],[3],[2],[5]],
@@ -16,9 +16,9 @@ def test_da():
                             6: [[1,3],[3],[1]]
                 }
     # 1. firms proposing:
-    assert b.da(firms_pref, workers_pref) == [{1: [1, 2], 2: [3, 5], 3: [2, 4]}, {1: [1], 2: [1, 3], 3: [2], 4: [3], 5: [2]}]
+    assert b.defer_acceptance(firms_pref, workers_pref) == [{1: [1, 2], 2: [3, 5], 3: [2, 4]}, {1: [1], 2: [1, 3], 3: [2], 4: [3], 5: [2]}]
     # 2. workers proposing:
-    assert b.da(workers_pref, firms_pref) == [{1: [3], 2: [2, 3], 3: [1], 4: [1], 5: [2]}, {1: [3, 4], 2: [2, 5], 3: [1, 2]}]
+    assert b.defer_acceptance(workers_pref, firms_pref) == [{1: [3], 2: [2, 3], 3: [1], 4: [1], 5: [2]}, {1: [3, 4], 2: [2, 5], 3: [1, 2]}]
 
     # E.g.2 - delete f1 from w1's preference list
     firms_pref = {
@@ -36,9 +36,9 @@ def test_da():
                             6: [[1,3],[3],[1]]
                     }
     # 1. firms proposing:
-    assert b.da(firms_pref, workers_pref) == [{1: [2, 4], 2: [3, 5], 3: [1, 2]}, {1: [3], 2: [1, 3], 3: [2], 4: [1], 5: [2]}]
+    assert b.defer_acceptance(firms_pref, workers_pref) == [{1: [2, 4], 2: [3, 5], 3: [1, 2]}, {1: [3], 2: [1, 3], 3: [2], 4: [1], 5: [2]}]
     # 2. workers proposing:
-    assert b.da(workers_pref, firms_pref) == [{1: [3], 2: [2, 3], 3: [1], 4: [1], 5: [2]}, {1: [3, 4], 2: [2, 5], 3: [1, 2]}]
+    assert b.defer_acceptance(workers_pref, firms_pref) == [{1: [3], 2: [2, 3], 3: [1], 4: [1], 5: [2]}, {1: [3, 4], 2: [2, 5], 3: [1, 2]}]
 
     # E.g.3: delete f1 from w2's preference list
     firms_pref = {
@@ -56,11 +56,11 @@ def test_da():
                             6: [[1,3],[3],[1]]
                     }
     # 1. firms proposing:
-    assert b.da(firms_pref, workers_pref) == [{1: [1, 3], 2: [2, 5], 3: [2, 4]}, {1: [1], 2: [2, 3], 3: [1], 4: [3], 5: [2]}]
+    assert b.defer_acceptance(firms_pref, workers_pref) == [{1: [1, 3], 2: [2, 5], 3: [2, 4]}, {1: [1], 2: [2, 3], 3: [1], 4: [3], 5: [2]}]
     # 2. workers proposing:
-    assert b.da(workers_pref, firms_pref) == [{1: [3], 2: [2, 3], 3: [1], 4: [1], 5: [2]}, {1: [3, 4], 2: [2, 5], 3: [1, 2]}]
+    assert b.defer_acceptance(workers_pref, firms_pref) == [{1: [3], 2: [2, 3], 3: [1], 4: [1], 5: [2]}, {1: [3, 4], 2: [2, 5], 3: [1, 2]}]
 
-    # E.g.4: test a normal 1-1 DA cases:
+    # E.g.4: test a normal 1-1 defer_acceptance cases:
     firms_pref = {
                         1: [[1],[3],[2],[4]],
                         2: [[4],[3],[1],[2]],
@@ -74,4 +74,4 @@ def test_da():
                         3: [[1],[3],[2],[4]],
                         4: [[1],[2],[3],[4]]
                 }
-    assert b.da(firms_pref, workers_pref) == [{1: [1], 2: [4], 3: [3], 4: [2]}, {1: [1], 2: [4], 3: [3], 4: [2]}]
+    assert b.defer_acceptance(firms_pref, workers_pref) == [{1: [1], 2: [4], 3: [3], 4: [2]}, {1: [1], 2: [4], 3: [3], 4: [2]}]

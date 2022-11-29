@@ -1,31 +1,285 @@
-# imports
-from da import defer_acceptance
+############################################################
+# Imports
+############################################################
+from itertools import permutations
+from copy import deepcopy
 
+############################################################
 # Check substitutable
+############################################################
 def check_substitable():
     pass
 
+############################################################
 # Check LAD
+############################################################
 def check_lad():
     pass
 
+############################################################
 # Many-many DA
-def da(males_prefs, females_prefs):
-    return defer_acceptance(males_prefs, females_prefs)
+############################################################
+def remove_unmatched(match):
+    new_match = {}
+    for keys, values in match.items():
+        if values != "No match":
+            new_match[keys] = values
+        else:
+            continue
+    return new_match
 
-# Reduction
-def reduction():
-    # uF = Run DA on firm side
+# find the free male
+def male_without_match(male_matches, males):
+    for male in males:
+        if male not in male_matches:
+            return male
+    return None
 
-    # uW = Run DA on worker side
+# for a specific male, find the female that the male has not proposed yet
+def female_not_proposed(male, male_proposed, male_pref):
+    for female in male_pref: # for all female in male_pref list
+        if male_proposed is [] or female not in male_proposed[male]: # if female not proposed by male before
+            return female # return that female
+    return "None" # if all female are proposed by the male before, it means no match
 
-    # Reduction Step 1 on both sides
+# find a female that no male is proposed to yet
+def female_free(female_list, engaged):
+    for female in female_list:
+        if female in engaged:
+            return False
+    return True
 
-    # Reduction Step 2 on both sides
+def female_favorback(male, female_list, females_prefs, female_engaged):
+    love = True # initialize love to true
+    for female in female_list: # for each female in male's highest rank female list
+        if female not in female_engaged:
+            female_engaged.extend([female])
+        female_pref = females_prefs[female] # get that female's preference list on male
+        if [male] not in female_pref: # if any female doesn't prefer the proposing male
+            love = False # set love to false
+    return love
 
-    # Reduction Step 3 to eliminate individual blocking pair
+# if female is engaged with m', check whether she prefer m over m' or not
+def female_prefered(male, female, female_pref, female_matches):
+    prefered = False
+    prefered_matches = []
+
+    if female in female_matches:
+        current_matches = female_matches[female]
+        # if m better than m'
+        if current_matches != []:
+            if [male] in female_pref and female_pref.index([male]) < female_pref.index(current_matches):
+                prefered = True
+                prefered_matches = [male] 
+            potential_matches = []
+            potential_matches.extend(current_matches)
+            potential_matches.extend([male])
+            '''potential_matches = [1, 3] --> perm_matches = [[1, 3], [3, 1]]'''
+            perm_matches = list(map(list,list(permutations(potential_matches))))
+            for match in perm_matches:
+                if match in female_pref and female_pref.index(match) < female_pref.index(current_matches):
+                    if prefered == False or female_pref.index(match) < female_pref.index(prefered_matches):
+
+                        prefered = True
+                        prefered_matches = match
+            return (prefered, prefered_matches, current_matches)
+        else:
+            return (False, [], [])
+    else:
+        return (True, [male], [])
+        
+def defer_acceptance(males_prefs, females_prefs):
+    male_matches = {}
+    female_matches = {}
+    male_proposed = {}
+    female_engaged = []
+    female_prefered_list = {}
+    males = list(males_prefs.keys())
+    while True:
+        male = male_without_match(male_matches, males) # find the free male
+        if male is None: # if all matched, terminate
+            break
+
+        if male not in male_proposed:
+            male_proposed[male] = [] # male proposed list
+        male_pref = males_prefs[male] # get current male's preference list
+
+        def propose(): # recursive helper function to let male propose to next prefered female
+            highest_rank_female = female_not_proposed(male, male_proposed, male_pref) # current highest ranked female that male not proposed yet
+
+            if highest_rank_female == "None":
+                male_matches[male] = "No match"
+                return
+
+            if male_proposed[male] == []: # if not in proposed list, add into it
+                male_proposed[male].append(highest_rank_female)
+            else: # if in proposed list, continue append list
+                if highest_rank_female not in male_proposed[male]:
+                    male_proposed[male].append(highest_rank_female)
+
+            if female_free(highest_rank_female, female_engaged): # if that female is free
+                love = female_favorback(male, highest_rank_female, females_prefs, female_engaged) # check whether female also favor the proposing male
+                if love == True: # if yes, then they engaged
+                    male_matches[male] = highest_rank_female # engaged
+                    for female in highest_rank_female:
+                        female_matches[female] = [male]
+                else: # male remains free, and propose to next prefered female
+                    propose()
+
+            else: # if the female is already engaged with other m'
+                love = female_favorback(male, highest_rank_female, females_prefs, female_engaged) # check whether female also favor the proposing male
+                for female in highest_rank_female:
+                    female_pref = females_prefs[female]
+                    if love == True:
+                        female_prefered_list[female] = female_prefered(male, female, female_pref, female_matches)
+
+                prefered = True
+                for key, values in female_prefered_list.items():
+                    if key in highest_rank_female and values[0] == False:
+                        prefered = False
+
+                if love == True: 
+                    if prefered == True: # m > m'
+                        for female, values in female_prefered_list.items(): # values = (prefered, prefered_matches, current_matches)
+                            male_matches[male] = highest_rank_female
+                            if values[0] == True:
+                                female_matches[female] = values[1] # female match with m
+                    else:
+                        propose()
+
+        propose()
+    male_matches = dict(sorted(male_matches.items()))
+    female_matches = dict(sorted(female_matches.items()))
+    male_matches = remove_unmatched(male_matches)
+    female_matches = remove_unmatched(female_matches)
+    return [male_matches, female_matches]
+
+############################################################
+# # Reduction
+############################################################
+
+# Return subsets assigned in the optimal stable matchings
+def get_u(u1, u2):
+    u_temp = [u1, u2]
+    u = {}
+    for k in u2.keys():
+        u[k] = tuple(u[k] for u in u_temp)
+    return u
+
+# return dictionary where value is a set(list)
+def get_u_sets(u):
+    u_sets = {}
+    for k in u.keys():
+        lst = list(u[k])
+        u_sets[k] = list(set(lst[0] + lst[1]))
+    return u_sets
+
+# sets --> 2-d array(value of preference dictionary); set1/set2 --> 1-d array
+def blair_preferred(sets, set1, set2):
+    if sets.index(set1) < sets.index(set2):
+        return True
+    return False
+
+# u_sets --> array(value of u_sets); sets --> array
+def set_in_u(u_set, sets):
+    for s in sets:
+        if s not in u_set:
+            return True
+    return False
+
+# Reduction Step 1 and Step 2:
+def reduction_step1_step2(firms_prefs, workers_prefs):
+
+    uf1, uw1 = defer_acceptance(males_prefs=deepcopy(firms_prefs), females_prefs=deepcopy(workers_prefs)) # DA - firms proposing
+    uw2, uf2 = defer_acceptance(males_prefs=deepcopy(workers_prefs), females_prefs=deepcopy(firms_prefs)) # DA - workers proposing
+    uf = get_u(uf1, uf2)
+    uw = get_u(uw2, uw1)
+    uf_sets = get_u_sets(uf)
+    uw_sets = get_u_sets(uw)
+
+    # Step 1 and Step 2 of reduction for one side
+    # Output: preference list after reduction
+    def reduction_for_oneside(preference_lists, u_sets, u1, u2):
+        delete = {}
+        for keys, values in preference_lists.items():
+            for value in values:
+                for v in value:
+                    if keys in u_sets:
+                        # Step 1:
+                        if v not in u_sets[keys] and blair_preferred(preference_lists[keys], value, u1[keys]):
+                            if keys not in delete:
+                                delete[keys] = [v]
+                            else:
+                                if v not in delete[keys]:
+                                    delete[keys].append(v)
+
+                        # Step 2:
+                        elif v not in u_sets[keys] and blair_preferred(preference_lists[keys], u2[keys], value):
+                            if keys not in delete:
+                                delete[keys] = [v]
+                            else:
+                                if v not in delete[keys]:
+                                    delete[keys].append(v)
+
+        return delete
+    # Reduction on firms' side:
+    delete_workers = reduction_for_oneside(firms_prefs, uf_sets, uf1, uf2)
+    # Reduction on workers' side:
+    delete_firms = reduction_for_oneside(workers_prefs, uw_sets, uw2, uw1)
+
+    def delete_sets(preference_lists, delete):
+        new_preference_lists = deepcopy(preference_lists)
+        for keys, values in preference_lists.items():
+            
+            for value in values:
+                if keys in delete:
+                    for v in delete[keys]:
+                        if v in value and value in new_preference_lists[keys]:
+                            new_preference_lists[keys].remove(value)
+        return new_preference_lists
     
-    pass
+    new_firms = delete_sets(firms_prefs, delete_workers)
+    new_workers = delete_sets(workers_prefs, delete_firms)
 
+    return [new_firms, new_workers]
+
+# Reduction Step 3
+def mutually_acceptable(firms_prefs, workers_prefs):
+    flatten_firms = {}
+    flatten_workers = {}
+    firms = []
+    workers = []
+    for keys, values in firms_prefs.items():
+        firms.append(keys)
+        flatten_firms[keys] = list(set(sum(values, [])))
+    for keys, values in workers_prefs.items():
+        workers.append(keys)
+        flatten_workers[keys] = list(set(sum(values, [])))
+
+    for keys, values in flatten_firms.items():
+        diff = list(set(workers).difference(values))
+        for d in diff:
+            for firm in deepcopy(workers_prefs)[d]:
+                if keys in firm:
+                    workers_prefs[d].remove(firm)
+    for keys, values in flatten_workers.items():
+        diff = list(set(firms).difference(values))
+        for d in diff:
+            for worker in deepcopy(firms_prefs)[d]:
+                if keys in worker:
+                    firms_prefs[d].remove(worker)
+                    
+    return [firms_prefs, workers_prefs]
+
+def reduction(firms_prefs, workers_prefs):
+    # Perform reduction step 1 and step 2
+    new_firms, new_workers = reduction_step1_step2(firms_prefs, workers_prefs)
+    new_firms, new_workers = mutually_acceptable(new_firms, new_workers)
+    return [new_firms, new_workers]
+
+
+############################################################
+# Cycle
+############################################################
 def cycle():
     pass
