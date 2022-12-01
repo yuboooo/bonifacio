@@ -33,10 +33,10 @@ def set_in_u(u_set, sets):
     return False
 
 # Reduction Step 1 and Step 2:
-def reduction_step1_step2(firms_prefs, workers_prefs):
+def reduction_step1_step2(firms_prefs, workers_prefs, one_to_one):
 
-    uf1, uw1 = defer_acceptance(males_prefs=deepcopy(firms_prefs), females_prefs=deepcopy(workers_prefs)) # DA - firms proposing
-    uw2, uf2 = defer_acceptance(males_prefs=deepcopy(workers_prefs), females_prefs=deepcopy(firms_prefs)) # DA - workers proposing
+    uf1, uw1 = defer_acceptance(males_prefs=deepcopy(firms_prefs), females_prefs=deepcopy(workers_prefs), one_to_one=one_to_one) # DA - firms proposing
+    uw2, uf2 = defer_acceptance(males_prefs=deepcopy(workers_prefs), females_prefs=deepcopy(firms_prefs), one_to_one=one_to_one) # DA - workers proposing
     uf = get_u(uf1, uf2)
     uw = get_u(uw2, uw1)
     uf_sets = get_u_sets(uf)
@@ -116,9 +116,9 @@ def mutually_acceptable(firms_prefs, workers_prefs):
                     
     return [firms_prefs, workers_prefs]
 
-def reduction(firms_prefs, workers_prefs):
+def reduction(firms_prefs, workers_prefs, one_to_one=False):
     # Perform reduction step 1 and step 2
-    new_firms, new_workers = reduction_step1_step2(firms_prefs, workers_prefs)
+    new_firms, new_workers = reduction_step1_step2(firms_prefs, workers_prefs, one_to_one)
     new_firms, new_workers = mutually_acceptable(new_firms, new_workers)
     return [new_firms, new_workers]
 

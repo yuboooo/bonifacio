@@ -69,7 +69,7 @@ def female_prefered(male, female, female_pref, female_matches):
     else:
         return (True, [male], [])
         
-def defer_acceptance(males_prefs, females_prefs):
+def defer_acceptance(males_prefs, females_prefs, one_to_one=False):
     male_matches = {}
     female_matches = {}
     male_proposed = {}
@@ -122,8 +122,13 @@ def defer_acceptance(males_prefs, females_prefs):
                 if love == True: 
                     if prefered == True: # m > m'
                         for female, values in female_prefered_list.items(): # values = (prefered, prefered_matches, current_matches)
-                            male_matches[male] = highest_rank_female
+                            
                             if values[0] == True:
+                                male_matches[male] = highest_rank_female
+                                if one_to_one == True:
+                                    for f in values[2]:
+                                        if f in male_matches:
+                                            del male_matches[f]
                                 female_matches[female] = values[1] # female match with m
                     else:
                         propose()
