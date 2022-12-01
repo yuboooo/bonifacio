@@ -5,14 +5,12 @@ from reduction import reduction
 from input_check import substitutability, lad
 
 
-
-
 def bonifacio(fp, wp):
     # Return a set of stable matching
     u_sets = []
     # Check input requirement
     check_sub = substitutability(fp) and substitutability(wp)
-    check_lad = lad(fp, wp)
+    check_lad = lad(fp) and lad(wp)
     if check_sub and check_lad:
         # Get firm's and worker's optimal stable matching
         uf = defer_acceptance(fp, wp)
