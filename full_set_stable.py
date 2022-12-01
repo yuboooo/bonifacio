@@ -1,6 +1,8 @@
+from itertools import permutations
+from copy import deepcopy
 from da import defer_acceptance
 from reduction import reduction
-from input_check import substitutability
+from input_check import substitutability, lad
 
 
 
