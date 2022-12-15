@@ -16,4 +16,4 @@ def lad(prefs):
         for i in range(len(proposed_side)-1):
             if len(proposed_side[i]) < len(proposed_side[i+1]):
                 return False
-    return True
+    return True 
